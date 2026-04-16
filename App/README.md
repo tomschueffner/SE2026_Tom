@@ -1,7 +1,6 @@
 # TrackIt
 
 > Lernfortschritts-App für Studierende
-> HWR Berlin · WI24C · 4. Semester · SS 2025 · Gruppe 4
 
 TrackIt ist eine Webanwendung, mit der Studierende ihre Fächer und Themen
 verwalten und ihren Lernfortschritt dokumentieren können. Jedes Thema lässt
@@ -135,9 +134,3 @@ Alle Routen außer `/api/auth/*` erfordern ein gültiges JWT-Cookie
 | DELETE   | `/api/topics/:id`            | Thema löschen                    |
 | GET      | `/api/progress?topicId=…`    | Fortschrittsverlauf              |
 | POST     | `/api/progress`              | Neuen Fortschritt eintragen      |
-
----
-
-## Team
-
-Gruppe 4 · HWR Berlin · WI24C · Software Engineering SS 2025
