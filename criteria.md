@@ -9,11 +9,9 @@
 | Kriterium | Status | Befund |
 |---|---|---|
 | E-Mail-Validierung client- und serverseitig | PASS | Client: `type="email"` (HTML5, `RegisterPage.jsx:36`). Server: `z.string().email()` (`auth.js:13`) |
-| Passwort: min. 8 Zeichen, 1 Zahl, 1 Sonderzeichen | FAIL | Server-Schema: `z.string().min(8)` — kein Regex für Zahl/Sonderzeichen (`auth.js:14`). Client: nur `minLength={8}` (`RegisterPage.jsx:41`) |
+| Passwort: min. 8 Zeichen, 1 Zahl, 1 Sonderzeichen | PASS | Zod prüft alle 5 Regeln: min 8, a-z, A-Z, 0-9, Sonderzeichen (`auth.js:14–19`). Live-Stärkeanzeige im Formular. |
 | JWT-Token nach Login (httpOnly Cookie) | PASS | `httpOnly: true, sameSite: 'strict'` gesetzt (`auth.js:25–30`) |
 | 401 bei ungültigem Token auf geschützten Routen | PASS | `verifyToken`-Middleware wirft 401 (`middleware/auth.js:7`) |
-
-**Kritischer Gap:** Das Passwort-Regelwerk ist unvollständig. Ein Passwort `12345678` würde akzeptiert.
 
 ---
 
@@ -54,7 +52,7 @@
 
 | Priorität | Anforderung | Gap |
 |---|---|---|
-| Hoch | F-01 Passwort-Regex | Zahl + Sonderzeichen fehlt serverseitig |
+| ~~Hoch~~ | ~~F-01 Passwort-Regex~~ | ~~Zahl + Sonderzeichen fehlt serverseitig~~ → **Behoben** |
 | Hoch | F-04 Slider/Dropdown | Kein Slider, kein Status-Dropdown |
 | Hoch | Performance Charts | Keine Charting-Komponente vorhanden |
 | Hoch | 100 concurrent users | SQLite nicht geeignet |
@@ -62,4 +60,4 @@
 | Mittel | U-01 Fehlermeldungen | Englische Server-Fehler, kein Lösungshinweis |
 | Mittel | U-01 Onboarding | Kein geführter Einstieg |
 
-**Ergebnis:** 5 von 13 Kriterien bestanden · 6 nicht erfüllt · 2 nicht messbar
+**Ergebnis:** 6 von 13 Kriterien bestanden · 5 nicht erfüllt · 2 nicht messbar
