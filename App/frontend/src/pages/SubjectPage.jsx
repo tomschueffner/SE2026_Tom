@@ -1,14 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-
-// Farbe des Fortschrittsbalkens (gleich wie im Dashboard)
-function progressColor(value) {
-  if (value === null) return 'bg-gray-300';
-  if (value >= 80)    return 'bg-green-500';
-  if (value >= 50)    return 'bg-yellow-500';
-  return 'bg-red-500';
-}
+import { progressColor } from '../utils/progressColor';
 
 export default function SubjectPage() {
   const { id } = useParams();

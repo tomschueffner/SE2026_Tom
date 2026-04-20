@@ -19,7 +19,7 @@
 
 | Kriterium | Status | Befund |
 |---|---|---|
-| Slider (0–100 %) oder Dropdown (4 Status-Labels) | FAIL | Weder Slider noch Dropdown. Nur ein `<input type="number" min="0" max="100">` (`SubjectPage.jsx:128`) |
+| Slider (0–100 %) oder Dropdown (4 Status-Labels) | PASS | Slider mit Live-Badge und editierbarem Zahlenfeld (`SubjectPage.jsx:129–138`) |
 | Jeder Eintrag mit Datum/Uhrzeit gespeichert | PASS | `Progress.createdAt @default(now())` (`schema.prisma:43`) |
 | Verlauf bleibt erhalten (mehrere Einträge) | PARTIAL | Backend legt neue Einträge an (kein Überschreiben, `progress.js:43`). Frontend zeigt aber nur den letzten Eintrag (`t.progress?.[0]`) — kein Verlaufs-UI |
 | Eingabe in < 3 Klicks vom Dashboard | PASS | Klick 1: Fach öffnen → Klick 2: „Eintragen" → Klick 3: „Speichern" |
@@ -42,7 +42,7 @@
 | Kriterium | Status | Befund |
 |---|---|---|
 | Seitenaufbau < 2 s (Dashboard) | UNKNOWN | Technisch plausibel bei SQLite + lokalem Dev, aber kein Load-Test vorhanden |
-| Charts rendern in max. 1,5 s | FAIL | Keine Charts implementiert. Kein Charting-Package in `package.json`. Nur CSS-Fortschrittsbalken |
+| Charts rendern in max. 1,5 s | PASS | `recharts` installiert. `ProgressPieChart.jsx` zeigt Topic-Verteilung (4 Buckets) auf dem Dashboard. Rendert sofort bei kleinen Datensätzen. |
 | Bis zu 100 gleichzeitige Nutzer | FAIL | SQLite ist ein Single-Writer-DBMS — nicht geeignet für 100 parallele Schreibzugriffe |
 | Keine Verlangsamung bei 20 Fächern | UNKNOWN | Kein Pagination, aber für 20 Fächer bei SQLite unkritisch — Risiko bei echtem Last-Test |
 
@@ -53,11 +53,11 @@
 | Priorität | Anforderung | Gap |
 |---|---|---|
 | ~~Hoch~~ | ~~F-01 Passwort-Regex~~ | ~~Zahl + Sonderzeichen fehlt serverseitig~~ → **Behoben** |
-| Hoch | F-04 Slider/Dropdown | Kein Slider, kein Status-Dropdown |
-| Hoch | Performance Charts | Keine Charting-Komponente vorhanden |
+| ~~Hoch~~ | ~~F-04 Slider/Dropdown~~ | ~~Kein Slider, kein Status-Dropdown~~ → **Behoben** |
+| ~~Hoch~~ | ~~Performance Charts~~ | ~~Keine Charting-Komponente vorhanden~~ → **Behoben** |
 | Hoch | 100 concurrent users | SQLite nicht geeignet |
 | Mittel | F-04 Verlaufs-UI | Daten vorhanden, kein Frontend dafür |
 | Mittel | U-01 Fehlermeldungen | Englische Server-Fehler, kein Lösungshinweis |
 | Mittel | U-01 Onboarding | Kein geführter Einstieg |
 
-**Ergebnis:** 6 von 13 Kriterien bestanden · 5 nicht erfüllt · 2 nicht messbar
+**Ergebnis:** 7 von 13 Kriterien bestanden · 4 nicht erfüllt · 2 nicht messbar

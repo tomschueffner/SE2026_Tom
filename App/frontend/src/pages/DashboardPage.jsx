@@ -2,20 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
+import { progressColor } from '../utils/progressColor';
+import ProgressPieChart from '../components/ProgressPieChart';
 
-// Durchschnittlicher Fortschritt aller Topics eines Fachs
 function avgProgress(topics) {
   const withProgress = topics.filter(t => t.progress?.[0]);
   if (!withProgress.length) return null;
   return Math.round(withProgress.reduce((sum, t) => sum + t.progress[0].value, 0) / withProgress.length);
-}
-
-// Farbe des Fortschrittsbalkens (Feature #2)
-function progressColor(value) {
-  if (value === null) return 'bg-gray-300';
-  if (value >= 80)    return 'bg-green-500';
-  if (value >= 50)    return 'bg-yellow-500';
-  return 'bg-red-500';
 }
 
 export default function DashboardPage() {
@@ -110,6 +103,9 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* Fortschritts-Tortendiagramm */}
+        {subjects.length > 0 && <ProgressPieChart subjects={subjects} />}
+
         {/* Neues Fach */}
         <form onSubmit={handleAdd} className="flex gap-2">
           <input
@@ -140,7 +136,7 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between">
                     <span className="font-medium">{s.name}</span>
                     <div className="flex items-center gap-3">
-                      <span className="text-xs text-gray-400">{s.topics.length} Themen</span>
+                      <span className="text-xs text-gray-400">{s.topics.length} {s.topics.length === 1 ? 'Thema' : 'Themen'}</span>
                       <button
                         onClick={e => handleDelete(e, s.id)}
                         className="text-red-400 hover:text-red-600 text-sm"
