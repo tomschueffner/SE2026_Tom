@@ -18,7 +18,7 @@ export default function SubjectPage() {
   const [topics, setTopics] = useState([]);
   const [newName, setNewName] = useState('');
   const [active, setActive] = useState(null); // topic-id mit offenem Fortschritts-Formular
-  const [progressForm, setProgressForm] = useState({ value: '', note: '' });
+  const [progressForm, setProgressForm] = useState({ value: 0, note: '' });
 
   useEffect(() => { loadTopics(); }, []);
 
@@ -47,13 +47,13 @@ export default function SubjectPage() {
       note: progressForm.note || undefined,
     });
     setActive(null);
-    setProgressForm({ value: '', note: '' });
+    setProgressForm({ value: 0, note: '' });
     loadTopics(); // neu laden → aktuellen Fortschritt anzeigen
   }
 
   function toggleForm(topicId) {
     setActive(active === topicId ? null : topicId);
-    setProgressForm({ value: '', note: '' });
+    setProgressForm({ value: 0, note: '' });
   }
 
   return (
@@ -125,12 +125,26 @@ export default function SubjectPage() {
                   {/* Fortschritts-Formular (aufklappbar) */}
                   {active === t.id && (
                     <form onSubmit={e => handleSaveProgress(e, t.id)} className="flex gap-2 pt-1">
-                      <input
-                        type="number" min="0" max="100" placeholder="0–100" required
-                        value={progressForm.value}
-                        onChange={e => setProgressForm({ ...progressForm, value: e.target.value })}
-                        className="w-20 border rounded px-2 py-1 text-sm"
-                      />
+                      <div className="flex items-center gap-3 flex-1">
+                        <input
+                          type="range" min="0" max="100" step="1"
+                          value={progressForm.value}
+                          onChange={e => setProgressForm({ ...progressForm, value: e.target.value })}
+                          className="flex-1 accent-blue-600 cursor-pointer"
+                        />
+                        <div className="flex items-center gap-0.5">
+                          <input
+                            type="number" min="0" max="100"
+                            value={progressForm.value}
+                            onChange={e => {
+                              const clamped = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
+                              setProgressForm({ ...progressForm, value: clamped });
+                            }}
+                            className="w-12 text-center text-sm font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-full px-2 py-0.5"
+                          />
+                          <span className="text-sm font-semibold text-blue-700">%</span>
+                        </div>
+                      </div>
                       <input
                         type="text" placeholder="Notiz (optional)"
                         value={progressForm.note}
