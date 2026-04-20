@@ -39,6 +39,7 @@ Two-process monolith: Express API + React SPA, run independently during developm
 - `middleware/auth.js` — reads JWT from the HttpOnly cookie (`req.cookies.token`), never from headers. Populates `req.user = { id, email }`.
 - `middleware/rateLimiter.js` — `authLimiter` applied only on `/api/auth`.
 - `routes/` — flat route files (`auth.js`, `subjects.js`, `topics.js`, `progress.js`). Each file instantiates its own `PrismaClient` directly — there is currently no shared singleton or service layer. Ownership is verified inline with `findFirst({ where: { id, userId } })`.
+  - `PATCH /api/topics/:id` — rename a topic (`{ name }`). Ownership verified via `topic.subject.userId`.
 
 ### Data model (`App/backend/prisma/schema.prisma`)
 
@@ -53,6 +54,7 @@ All relations have `onDelete: Cascade`. `Progress.value` is an integer 0–100.
 - `context/AuthContext.jsx` — restores session by calling `GET /api/auth/me` on mount. No token in localStorage.
 - `components/ProtectedRoute.jsx` — redirects to `/login` if not authenticated.
 - `components/ProgressPieChart.jsx` — pie chart showing topic progress distribution (4 buckets: Erste Schritte / Auf Kurs! / Meisterhaft! / Kein Fortschritt). Accepts `subjects` prop from DashboardPage.
+- `components/TopicsBarChart.jsx` — bar chart showing per-topic progress for a single subject, sorted lowest → highest. Only rendered when ≥ 2 topics. Accepts `topics` prop from SubjectPage.
 - `utils/progressColor.js` — shared color helpers: `progressColor(value)` returns a Tailwind class, `progressColorHex(value)` returns a hex string for Recharts.
 - Route structure: `/` (Dashboard), `/subjects/:id` (SubjectPage), `/login`, `/register`.
 

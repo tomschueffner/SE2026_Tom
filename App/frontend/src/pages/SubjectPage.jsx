@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { progressColor } from '../utils/progressColor';
+import TopicsBarChart from '../components/TopicsBarChart';
 
 export default function SubjectPage() {
   const { id } = useParams();
@@ -12,6 +13,7 @@ export default function SubjectPage() {
   const [newName, setNewName] = useState('');
   const [active, setActive] = useState(null); // topic-id mit offenem Fortschritts-Formular
   const [progressForm, setProgressForm] = useState({ value: 0, note: '' });
+  const [renameName, setRenameName] = useState('');
 
   useEffect(() => { loadTopics(); }, []);
 
@@ -32,8 +34,12 @@ export default function SubjectPage() {
     setTopics(topics.filter(t => t.id !== topicId));
   }
 
-  async function handleSaveProgress(e, topicId) {
+  async function handleSaveProgress(e, topicId, currentName) {
     e.preventDefault();
+    const trimmed = renameName.trim();
+    if (trimmed && trimmed !== currentName) {
+      await api.patch(`/topics/${topicId}`, { name: trimmed });
+    }
     await api.post('/progress', {
       topicId,
       value: parseInt(progressForm.value),
@@ -41,12 +47,13 @@ export default function SubjectPage() {
     });
     setActive(null);
     setProgressForm({ value: 0, note: '' });
-    loadTopics(); // neu laden → aktuellen Fortschritt anzeigen
+    loadTopics();
   }
 
-  function toggleForm(topicId) {
+  function toggleForm(topicId, currentName, currentValue) {
     setActive(active === topicId ? null : topicId);
-    setProgressForm({ value: 0, note: '' });
+    setProgressForm({ value: currentValue ?? 0, note: '' });
+    setRenameName(currentName ?? '');
   }
 
   return (
@@ -74,6 +81,9 @@ export default function SubjectPage() {
           </button>
         </form>
 
+        {/* Bar Chart (ab 2 Themen) */}
+        {topics.length >= 2 && <TopicsBarChart topics={topics} />}
+
         {/* Topics-Liste */}
         {topics.length === 0 ? (
           <p className="text-gray-400 text-sm">Noch keine Themen angelegt.</p>
@@ -86,10 +96,18 @@ export default function SubjectPage() {
 
                   {/* Topic-Header */}
                   <div className="flex items-center justify-between">
-                    <span className="font-medium">{t.name}</span>
+                    {active === t.id
+                      ? <input
+                          type="text"
+                          value={renameName}
+                          onChange={e => setRenameName(e.target.value)}
+                          className="font-medium border-b border-blue-400 focus:outline-none bg-transparent"
+                        />
+                      : <span className="font-medium">{t.name}</span>
+                    }
                     <div className="flex gap-3 text-sm">
-                      <button onClick={() => toggleForm(t.id)} className="text-blue-600 hover:underline">
-                        {active === t.id ? 'Abbrechen' : 'Eintragen'}
+                      <button onClick={() => toggleForm(t.id, t.name, latest)} className="text-blue-600 hover:underline">
+                        {active === t.id ? 'Abbrechen' : 'Bearbeiten'}
                       </button>
                       <button onClick={() => handleDeleteTopic(t.id)} className="text-red-400 hover:text-red-600">
                         Löschen
@@ -117,7 +135,7 @@ export default function SubjectPage() {
 
                   {/* Fortschritts-Formular (aufklappbar) */}
                   {active === t.id && (
-                    <form onSubmit={e => handleSaveProgress(e, t.id)} className="flex gap-2 pt-1">
+                    <form onSubmit={e => handleSaveProgress(e, t.id, t.name)} className="flex gap-2 pt-1">
                       <div className="flex items-center gap-3 flex-1">
                         <input
                           type="range" min="0" max="100" step="1"

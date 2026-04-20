@@ -40,6 +40,19 @@ router.post('/', async (req, res) => {
   res.status(201).json(topic);
 });
 
+// PATCH /api/topics/:id  – rename
+router.patch('/:id', async (req, res) => {
+  const id = parseInt(req.params.id);
+  const result = z.object({ name: z.string().min(1).max(100) }).safeParse(req.body);
+  if (!result.success) return res.status(400).json({ error: result.error.flatten().fieldErrors });
+
+  const topic = await prisma.topic.findFirst({ where: { id }, include: { subject: true } });
+  if (!topic || topic.subject.userId !== req.user.id) return res.status(404).json({ error: 'Not found' });
+
+  const updated = await prisma.topic.update({ where: { id }, data: { name: result.data.name } });
+  res.json(updated);
+});
+
 // DELETE /api/topics/:id
 router.delete('/:id', async (req, res) => {
   const id = parseInt(req.params.id);

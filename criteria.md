@@ -19,7 +19,7 @@
 
 | Kriterium | Status | Befund |
 |---|---|---|
-| Slider (0–100 %) oder Dropdown (4 Status-Labels) | PASS | Slider mit Live-Badge und editierbarem Zahlenfeld (`SubjectPage.jsx:129–138`) |
+| Slider (0–100 %) oder Dropdown (4 Status-Labels) | PASS | Slider mit Live-Badge und editierbarem Zahlenfeld (`SubjectPage.jsx`). Öffnet vorausgefüllt mit aktuellem Wert. Themenname inline editierbar. |
 | Jeder Eintrag mit Datum/Uhrzeit gespeichert | PASS | `Progress.createdAt @default(now())` (`schema.prisma:43`) |
 | Verlauf bleibt erhalten (mehrere Einträge) | PARTIAL | Backend legt neue Einträge an (kein Überschreiben, `progress.js:43`). Frontend zeigt aber nur den letzten Eintrag (`t.progress?.[0]`) — kein Verlaufs-UI |
 | Eingabe in < 3 Klicks vom Dashboard | PASS | Klick 1: Fach öffnen → Klick 2: „Eintragen" → Klick 3: „Speichern" |
@@ -42,7 +42,7 @@
 | Kriterium | Status | Befund |
 |---|---|---|
 | Seitenaufbau < 2 s (Dashboard) | UNKNOWN | Technisch plausibel bei SQLite + lokalem Dev, aber kein Load-Test vorhanden |
-| Charts rendern in max. 1,5 s | PASS | `recharts` installiert. `ProgressPieChart.jsx` zeigt Topic-Verteilung (4 Buckets) auf dem Dashboard. Rendert sofort bei kleinen Datensätzen. |
+| Charts rendern in max. 1,5 s | PASS | `recharts` installiert. `ProgressPieChart.jsx` (Dashboard, Pie) und `TopicsBarChart.jsx` (SubjectPage, Bar — ab 2 Themen, sortiert aufsteigend). Beide rendern sofort bei kleinen Datensätzen. |
 | Bis zu 100 gleichzeitige Nutzer | FAIL | SQLite ist ein Single-Writer-DBMS — nicht geeignet für 100 parallele Schreibzugriffe |
 | Keine Verlangsamung bei 20 Fächern | UNKNOWN | Kein Pagination, aber für 20 Fächer bei SQLite unkritisch — Risiko bei echtem Last-Test |
 
