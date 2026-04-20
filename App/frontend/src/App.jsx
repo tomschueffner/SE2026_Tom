@@ -5,6 +5,8 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import SubjectPage from './pages/SubjectPage';
+import FortschrittPage from './pages/FortschrittPage';
+import ProfilPage from './pages/ProfilPage';
 
 export default function App() {
   return (
@@ -26,6 +28,22 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <SubjectPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/fortschritt"
+            element={
+              <ProtectedRoute>
+                <FortschrittPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profil"
+            element={
+              <ProtectedRoute>
+                <ProfilPage />
               </ProtectedRoute>
             }
           />

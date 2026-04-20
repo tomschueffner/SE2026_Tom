@@ -1,18 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
-import { progressColor } from '../utils/progressColor';
-import ProgressPieChart from '../components/ProgressPieChart';
-
-function avgProgress(topics) {
-  const withProgress = topics.filter(t => t.progress?.[0]);
-  if (!withProgress.length) return null;
-  return Math.round(withProgress.reduce((sum, t) => sum + t.progress[0].value, 0) / withProgress.length);
-}
+import { avgProgress, progColor } from '../utils/progress';
+import LogoIcon from '../components/LogoIcon';
+import ProgressBar from '../components/ProgressBar';
+import ProgressRing from '../components/ProgressRing';
+import BottomTabBar from '../components/BottomTabBar';
 
 export default function DashboardPage() {
-  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const [subjects, setSubjects] = useState([]);
@@ -26,8 +21,9 @@ export default function DashboardPage() {
   async function handleAdd(e) {
     e.preventDefault();
     setError('');
+    if (!newName.trim()) return;
     try {
-      const { data } = await api.post('/subjects', { name: newName });
+      const { data } = await api.post('/subjects', { name: newName.trim() });
       setSubjects([{ ...data, topics: [] }, ...subjects]);
       setNewName('');
     } catch (err) {
@@ -36,135 +32,140 @@ export default function DashboardPage() {
   }
 
   async function handleDelete(e, id) {
-    e.stopPropagation(); // nicht zur SubjectPage navigieren
+    e.stopPropagation();
     await api.delete(`/subjects/${id}`);
     setSubjects(subjects.filter(s => s.id !== id));
   }
 
-  async function handleLogout() {
-    await logout();
-    navigate('/login');
-  }
-
-  // Sortierte Fächer — höchster Fortschritt oben (Feature #4)
-  // Fächer ohne Fortschritt (null) landen am Ende
   const sortedSubjects = [...subjects].sort((a, b) => {
-    const aAvg = avgProgress(a.topics);
-    const bAvg = avgProgress(b.topics);
-    if (aAvg === null && bAvg === null) return 0;
-    if (aAvg === null) return 1;
-    if (bAvg === null) return -1;
-    return bAvg - aAvg;
+    const av = avgProgress(a.topics);
+    const bv = avgProgress(b.topics);
+    if (av === null && bv === null) return 0;
+    if (av === null) return 1;
+    if (bv === null) return -1;
+    return bv - av;
   });
 
-  // Globale Statistiken (Feature #5)
   const totalSubjects = subjects.length;
-  const totalTopics = subjects.reduce((sum, s) => sum + s.topics.length, 0);
-  const allTopicsWithProgress = subjects.flatMap(s => s.topics).filter(t => t.progress?.[0]);
-  const overallAvg = allTopicsWithProgress.length
-    ? Math.round(allTopicsWithProgress.reduce((sum, t) => sum + t.progress[0].value, 0) / allTopicsWithProgress.length)
+  const totalTopics = subjects.reduce((s, x) => s + x.topics.length, 0);
+  const allWithProgress = subjects.flatMap(s => s.topics).filter(t => t.progress?.[0]);
+  const overallAvg = allWithProgress.length
+    ? Math.round(allWithProgress.reduce((s, t) => s + t.progress[0].value, 0) / allWithProgress.length)
     : null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-
-      <header className="bg-white border-b px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold">TrackIt</h1>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-600">{user?.name}</span>
-          <button onClick={handleLogout} className="text-sm text-red-600 hover:underline">Logout</button>
+    <div className="app-shell">
+      <div className="screen">
+        <div className="header">
+          <div className="logo-row">
+            <LogoIcon size={28} iconSize={14} />
+            <span className="header-title">TrackIt</span>
+          </div>
+          <div
+            style={{
+              width: 28, height: 28, borderRadius: '50%',
+              background: 'var(--bg3)', border: '1px solid var(--border)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+            onClick={() => navigate('/profil')}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--fg2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
         </div>
-      </header>
 
-      <main className="max-w-xl mx-auto p-6 space-y-6">
-
-        {/* Statistiken-Dach (Feature #5) */}
-        {totalSubjects > 0 && (
-          <div className="bg-white border rounded-lg px-5 py-4 grid grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="text-2xl font-bold text-gray-800">{totalSubjects}</div>
-              <div className="text-xs text-gray-500 mt-1">Fächer</div>
+        <div className="screen-scroll">
+          {/* Stats */}
+          <div className="card" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', marginBottom: 16, padding: '12px 8px' }}>
+            <div className="stat-box">
+              <div className="stat-num">{totalSubjects}</div>
+              <div className="stat-label">Fächer</div>
             </div>
-            <div className="border-x">
-              <div className="text-2xl font-bold text-gray-800">{totalTopics}</div>
-              <div className="text-xs text-gray-500 mt-1">Themen</div>
+            <div className="stat-box" style={{ borderLeft: '1px solid var(--border)', borderRight: '1px solid var(--border)' }}>
+              <div className="stat-num">{totalTopics}</div>
+              <div className="stat-label">Themen</div>
             </div>
-            <div>
-              <div className={`text-2xl font-bold ${
-                overallAvg === null ? 'text-gray-400' :
-                overallAvg >= 80    ? 'text-green-600' :
-                overallAvg >= 50    ? 'text-yellow-600' :
-                                      'text-red-600'
-              }`}>
+            <div className="stat-box">
+              <div className="stat-num" style={{ color: progColor(overallAvg) }}>
                 {overallAvg !== null ? `${overallAvg}%` : '–'}
               </div>
-              <div className="text-xs text-gray-500 mt-1">Ø Fortschritt</div>
+              <div className="stat-label">Ø Fortschritt</div>
             </div>
           </div>
-        )}
 
-        {/* Fortschritts-Tortendiagramm */}
-        {subjects.length > 0 && <ProgressPieChart subjects={subjects} />}
+          {/* Gesamtfortschritt */}
+          {totalSubjects > 0 && (
+            <div className="card" style={{ marginBottom: 16, padding: '14px 16px' }}>
+              <div className="section-head" style={{ marginBottom: 12 }}>Gesamtfortschritt</div>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                <ProgressRing value={overallAvg} size={56} />
+                <div style={{ flex: 1 }}>
+                  {sortedSubjects.filter(s => s.topics.length > 0).slice(0, 3).map(s => {
+                    const avg = avgProgress(s.topics);
+                    return (
+                      <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                        <span style={{ fontSize: 11, color: 'var(--fg2)', minWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {s.name}
+                        </span>
+                        <ProgressBar value={avg} height={5} />
+                        <span style={{ fontSize: 11, color: progColor(avg), minWidth: 28, textAlign: 'right', fontWeight: 600 }}>
+                          {avg !== null ? `${avg}%` : '–'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                  {sortedSubjects.filter(s => s.topics.length > 0).length === 0 && (
+                    <p style={{ fontSize: 12, color: 'var(--fg2)' }}>Noch keine Themen mit Fortschritt.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
-        {/* Neues Fach */}
-        <form onSubmit={handleAdd} className="flex gap-2">
-          <input
-            type="text" placeholder="Neues Fach (z.B. Mathe)" required
-            value={newName}
-            onChange={e => setNewName(e.target.value)}
-            className="flex-1 border rounded px-3 py-2 text-sm"
-          />
-          <button type="submit" className="bg-blue-600 text-white rounded px-4 py-2 text-sm font-medium hover:bg-blue-700">
-            Hinzufügen
-          </button>
-        </form>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+          {/* Add subject */}
+          <form onSubmit={handleAdd} style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+            <input className="input" placeholder="Neues Fach…" value={newName} onChange={e => setNewName(e.target.value)} style={{ flex: 1 }} />
+            <button className="btn-primary" type="submit" style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>+ Fach</button>
+          </form>
+          {error && <p style={{ fontSize: 13, color: 'var(--red)', marginBottom: 12 }}>{error}</p>}
 
-        {/* Fächer-Liste (sortiert) */}
-        {sortedSubjects.length === 0 ? (
-          <p className="text-gray-400 text-sm">Noch keine Fächer angelegt.</p>
-        ) : (
-          <ul className="space-y-3">
-            {sortedSubjects.map(s => {
-              const avg = avgProgress(s.topics);
-              return (
-                <li
-                  key={s.id}
-                  onClick={() => navigate(`/subjects/${s.id}`, { state: { name: s.name } })}
-                  className="bg-white border rounded px-4 py-3 space-y-2 cursor-pointer hover:border-blue-300 transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">{s.name}</span>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-gray-400">{s.topics.length} {s.topics.length === 1 ? 'Thema' : 'Themen'}</span>
-                      <button
-                        onClick={e => handleDelete(e, s.id)}
-                        className="text-red-400 hover:text-red-600 text-sm"
-                      >
-                        Löschen
-                      </button>
+          {/* Subject list */}
+          <div className="section-head">Fächer ({sortedSubjects.length})</div>
+          {sortedSubjects.length === 0 ? (
+            <p style={{ fontSize: 13, color: 'var(--fg2)' }}>Noch keine Fächer angelegt.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {sortedSubjects.map(s => {
+                const avg = avgProgress(s.topics);
+                return (
+                  <div key={s.id} className="card card-hover" onClick={() => navigate(`/subjects/${s.id}`, { state: { name: s.name } })}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                      <span style={{ fontWeight: 600, fontSize: 14 }}>{s.name}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <span style={{ fontSize: 11, color: 'var(--fg2)' }}>{s.topics.length} Themen</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: progColor(avg), minWidth: 36, textAlign: 'right' }}>
+                          {avg !== null ? `${avg}%` : '–'}
+                        </span>
+                        <button onClick={e => handleDelete(e, s.id)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--red)', fontSize: 12, fontFamily: 'var(--font)', padding: 0 }}>
+                          Löschen
+                        </button>
+                      </div>
                     </div>
+                    <ProgressBar value={avg} />
                   </div>
+                );
+              })}
+            </div>
+          )}
+          <div style={{ height: 24 }} />
+        </div>
 
-                  {/* Fortschrittsbalken (farbkodiert — Feature #2) */}
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 bg-gray-100 rounded-full h-2">
-                      <div
-                        className={`${progressColor(avg)} h-2 rounded-full transition-all`}
-                        style={{ width: `${avg ?? 0}%` }}
-                      />
-                    </div>
-                    <span className="text-xs text-gray-400 w-10 text-right">
-                      {avg !== null ? `${avg}%` : '–'}
-                    </span>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-
-      </main>
+        <BottomTabBar />
+      </div>
     </div>
   );
 }

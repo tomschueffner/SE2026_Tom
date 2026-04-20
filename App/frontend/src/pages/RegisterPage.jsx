@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import LogoIcon from '../components/LogoIcon';
 
-const STRENGTH_COLORS = ['bg-red-500', 'bg-orange-500', 'bg-yellow-400', 'bg-lime-500', 'bg-green-500'];
-const STRENGTH_TEXT   = ['text-red-500', 'text-orange-500', 'text-yellow-500', 'text-lime-600', 'text-green-600'];
+const STRENGTH_COLORS = ['var(--red)', 'var(--red)', 'var(--yellow)', 'var(--yellow)', 'var(--green)'];
 const STRENGTH_LABELS = ['sehr unsicher', 'unsicher', 'mittel', 'sicher', 'sehr sicher'];
 
 function checkStrength(pw) {
@@ -20,12 +20,14 @@ export default function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [strength, setStrength] = useState(0);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+    setLoading(true);
     try {
       await register(form.name, form.email, form.password);
       navigate('/dashboard');
@@ -36,6 +38,8 @@ export default function RegisterPage() {
       } else {
         setError(errData || 'Registrierung fehlgeschlagen');
       }
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -46,59 +50,67 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white p-8 rounded-lg shadow w-full max-w-sm">
-        <h1 className="text-2xl font-bold mb-6">TrackIt — Registrieren</h1>
-        {error && <p className="text-red-500 mb-4 text-sm whitespace-pre-line">{error}</p>}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text" placeholder="Name" required
-            value={form.name}
-            onChange={e => setForm({ ...form, name: e.target.value })}
-            className="w-full border rounded px-3 py-2 text-sm"
-          />
-          <input
-            type="email" placeholder="E-Mail" required
-            value={form.email}
-            onChange={e => setForm({ ...form, email: e.target.value })}
-            className="w-full border rounded px-3 py-2 text-sm"
-          />
-          <div className="space-y-2">
-            <input
-              type="password"
-              placeholder="Passwort (min. 8 Zeichen, a-z, A-Z, 0-9, Sonderzeichen)"
-              required minLength={8}
-              value={form.password}
-              onChange={handlePasswordChange}
-              className="w-full border rounded px-3 py-2 text-sm"
-            />
-            {/* Stärke-Balken */}
-            <div className="flex gap-1">
-              {STRENGTH_COLORS.map((color, i) => (
-                <div
-                  key={i}
-                  className={`h-1.5 flex-1 rounded-full transition-colors duration-200 ${i < strength ? color : 'bg-gray-200'}`}
-                />
-              ))}
-            </div>
-            {form.password.length > 15 && (
-              <p className="text-xs font-medium text-red-500">
-                Passwort darf maximal 15 Zeichen haben ({form.password.length}/15)
-              </p>
-            )}
-            {strength > 0 && form.password.length <= 15 && (
-              <p className={`text-xs font-medium ${STRENGTH_TEXT[strength - 1]}`}>
-                {STRENGTH_LABELS[strength - 1]}
-              </p>
-            )}
+    <div className="app-shell">
+      <div className="screen-scroll" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '32px 24px', height: '100%' }}>
+        <Link to="/login" className="btn-link" style={{ marginBottom: 32, textDecoration: 'none' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          Zurück zum Login
+        </Link>
+
+        <div style={{ marginBottom: 32 }}>
+          <div className="logo-row" style={{ marginBottom: 12 }}>
+            <LogoIcon />
+            <span style={{ fontSize: 18, fontWeight: 700 }}>TrackIt</span>
           </div>
-          <button type="submit" className="w-full bg-blue-600 text-white rounded px-3 py-2 text-sm font-medium hover:bg-blue-700">
-            Registrieren
+          <p style={{ fontSize: 13, color: 'var(--fg2)' }}>Konto erstellen</p>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div>
+            <label className="form-label">Name</label>
+            <input className="input" type="text" placeholder="Dein Name" required
+              value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+          </div>
+          <div>
+            <label className="form-label">E-Mail</label>
+            <input className="input" type="email" placeholder="du@hwr.de" required
+              value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+          </div>
+          <div>
+            <label className="form-label">Passwort</label>
+            <input className="input" type="password" placeholder="Min. 8 Zeichen" required minLength={8}
+              value={form.password} onChange={handlePasswordChange} />
+
+            {/* Stärke-Balken */}
+            {form.password.length > 0 && (
+              <div style={{ marginTop: 8 }}>
+                <div style={{ display: 'flex', gap: 4, marginBottom: 5 }}>
+                  {[0,1,2,3,4].map(i => (
+                    <div key={i} style={{
+                      flex: 1, height: 4, borderRadius: 999,
+                      background: i < strength ? STRENGTH_COLORS[strength - 1] : 'var(--bg3)',
+                      transition: 'background 0.2s',
+                    }} />
+                  ))}
+                </div>
+                <p style={{ fontSize: 11, color: strength > 0 ? STRENGTH_COLORS[strength - 1] : 'var(--fg2)' }}>
+                  {strength > 0 ? STRENGTH_LABELS[strength - 1] : ''}
+                </p>
+              </div>
+            )}
+            <p style={{ fontSize: 11, color: 'var(--fg2)', marginTop: 5 }}>
+              Muss Zahl + Sonderzeichen enthalten.
+            </p>
+          </div>
+
+          {error && <p style={{ fontSize: 13, color: 'var(--red)', whiteSpace: 'pre-line' }}>{error}</p>}
+
+          <button className="btn-primary" type="submit" style={{ marginTop: 8 }} disabled={loading}>
+            {loading ? 'Registrieren…' : 'Konto erstellen'}
           </button>
         </form>
-        <p className="mt-4 text-sm text-gray-600">
-          Schon ein Konto? <Link to="/login" className="text-blue-600 hover:underline">Login</Link>
-        </p>
       </div>
     </div>
   );

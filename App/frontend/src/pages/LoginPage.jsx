@@ -1,48 +1,112 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import LogoIcon from '../components/LogoIcon';
 
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+    setLoading(true);
     try {
       await login(form.email, form.password);
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.error || 'Login fehlgeschlagen');
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white p-8 rounded-lg shadow w-full max-w-sm">
-        <h1 className="text-2xl font-bold mb-6">TrackIt — Login</h1>
-        {error && <p className="text-red-500 mb-4 text-sm">{error}</p>}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="email" placeholder="E-Mail" required
-            value={form.email}
-            onChange={e => setForm({ ...form, email: e.target.value })}
-            className="w-full border rounded px-3 py-2 text-sm"
-          />
-          <input
-            type="password" placeholder="Passwort" required
-            value={form.password}
-            onChange={e => setForm({ ...form, password: e.target.value })}
-            className="w-full border rounded px-3 py-2 text-sm"
-          />
-          <button type="submit" className="w-full bg-blue-600 text-white rounded px-3 py-2 text-sm font-medium hover:bg-blue-700">
-            Login
+    <div className="app-shell">
+      <div
+        className="screen-scroll"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          padding: '32px 24px',
+          height: '100%',
+        }}
+      >
+        <div style={{ marginBottom: 40 }}>
+          <div className="logo-row" style={{ marginBottom: 12 }}>
+            <LogoIcon />
+            <span style={{ fontSize: 18, fontWeight: 700 }}>TrackIt</span>
+          </div>
+          <p style={{ fontSize: 13, color: 'var(--fg2)', lineHeight: 1.5 }}>
+            Lernfortschritt im Blick behalten.
+          </p>
+        </div>
+
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
+        >
+          <div>
+            <label className="form-label">E-Mail</label>
+            <input
+              className="input"
+              type="email"
+              placeholder="du@hwr.de"
+              required
+              value={form.email}
+              onChange={e => setForm({ ...form, email: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="form-label">Passwort</label>
+            <input
+              className="input"
+              type="password"
+              placeholder="••••••••"
+              required
+              value={form.password}
+              onChange={e => setForm({ ...form, password: e.target.value })}
+            />
+          </div>
+
+          {error && (
+            <p
+              style={{
+                fontSize: 13,
+                color: 'var(--red)',
+                marginTop: 4,
+              }}
+            >
+              {error}
+            </p>
+          )}
+
+          <button
+            className="btn-primary"
+            type="submit"
+            style={{ marginTop: 8 }}
+            disabled={loading}
+          >
+            {loading ? 'Anmelden…' : 'Anmelden'}
           </button>
         </form>
-        <p className="mt-4 text-sm text-gray-600">
-          Noch kein Konto? <Link to="/register" className="text-blue-600 hover:underline">Registrieren</Link>
+
+        <p
+          style={{
+            marginTop: 24,
+            fontSize: 13,
+            color: 'var(--fg2)',
+            textAlign: 'center',
+          }}
+        >
+          Noch kein Konto?{' '}
+          <Link to="/register" style={{ color: 'var(--accent)', textDecoration: 'none' }}>
+            Registrieren
+          </Link>
         </p>
       </div>
     </div>

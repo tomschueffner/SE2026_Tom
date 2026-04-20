@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import { progressColor } from '../utils/progressColor';
-import TopicsBarChart from '../components/TopicsBarChart';
+import { progColor } from '../utils/progress';
+import ProgressBar from '../components/ProgressBar';
+import MiniBarChart from '../components/MiniBarChart';
+import BottomTabBar from '../components/BottomTabBar';
 
 export default function SubjectPage() {
   const { id } = useParams();
@@ -11,11 +13,12 @@ export default function SubjectPage() {
 
   const [topics, setTopics] = useState([]);
   const [newName, setNewName] = useState('');
-  const [active, setActive] = useState(null); // topic-id mit offenem Fortschritts-Formular
-  const [progressForm, setProgressForm] = useState({ value: 0, note: '' });
+  const [active, setActive] = useState(null);
+  const [progressVal, setProgressVal] = useState(0);
+  const [note, setNote] = useState('');
   const [renameName, setRenameName] = useState('');
 
-  useEffect(() => { loadTopics(); }, []);
+  useEffect(() => { loadTopics(); }, []); // eslint-disable-line
 
   async function loadTopics() {
     const { data } = await api.get(`/topics?subjectId=${id}`);
@@ -24,7 +27,8 @@ export default function SubjectPage() {
 
   async function handleAddTopic(e) {
     e.preventDefault();
-    const { data } = await api.post('/topics', { name: newName, subjectId: parseInt(id) });
+    if (!newName.trim()) return;
+    const { data } = await api.post('/topics', { name: newName.trim(), subjectId: parseInt(id) });
     setTopics([...topics, { ...data, progress: [] }]);
     setNewName('');
   }
@@ -42,139 +46,135 @@ export default function SubjectPage() {
     }
     await api.post('/progress', {
       topicId,
-      value: parseInt(progressForm.value),
-      note: progressForm.note || undefined,
+      value: parseInt(progressVal),
+      note: note || undefined,
     });
     setActive(null);
-    setProgressForm({ value: 0, note: '' });
+    setNote('');
     loadTopics();
   }
 
-  function toggleForm(topicId, currentName, currentValue) {
-    setActive(active === topicId ? null : topicId);
-    setProgressForm({ value: currentValue ?? 0, note: '' });
-    setRenameName(currentName ?? '');
+  function toggleForm(t) {
+    if (active === t.id) {
+      setActive(null);
+    } else {
+      setActive(t.id);
+      setProgressVal(t.progress?.[0]?.value ?? 0);
+      setRenameName(t.name);
+      setNote('');
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-
-      <header className="bg-white border-b px-6 py-4 flex items-center gap-4">
-        <button onClick={() => navigate('/dashboard')} className="text-sm text-gray-500 hover:underline">
-          ← Zurück
-        </button>
-        <h1 className="text-xl font-bold">{state?.name || 'Fach'}</h1>
-      </header>
-
-      <main className="max-w-xl mx-auto p-6 space-y-6">
-
-        {/* Neues Thema */}
-        <form onSubmit={handleAddTopic} className="flex gap-2">
-          <input
-            type="text" placeholder="Neues Thema (z.B. Kapitel 1)" required
-            value={newName}
-            onChange={e => setNewName(e.target.value)}
-            className="flex-1 border rounded px-3 py-2 text-sm"
-          />
-          <button type="submit" className="bg-blue-600 text-white rounded px-4 py-2 text-sm font-medium hover:bg-blue-700">
-            Hinzufügen
+    <div className="app-shell">
+      <div className="screen">
+        <div className="header">
+          <button onClick={() => navigate('/dashboard')} className="btn-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+            Zurück
           </button>
-        </form>
+          <span className="header-title">{state?.name || 'Fach'}</span>
+          <div style={{ width: 60 }} />
+        </div>
 
-        {/* Bar Chart (ab 2 Themen) */}
-        {topics.length >= 2 && <TopicsBarChart topics={topics} />}
+        <div className="screen-scroll">
+          {/* Bar chart */}
+          {topics.length >= 2 && (
+            <div className="card" style={{ marginBottom: 16, padding: '14px 16px' }}>
+              <div className="section-head" style={{ marginBottom: 10 }}>Themen-Übersicht</div>
+              <MiniBarChart topics={topics} />
+            </div>
+          )}
 
-        {/* Topics-Liste */}
-        {topics.length === 0 ? (
-          <p className="text-gray-400 text-sm">Noch keine Themen angelegt.</p>
-        ) : (
-          <ul className="space-y-3">
+          {/* Add topic */}
+          <form onSubmit={handleAddTopic} style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+            <input className="input" placeholder="Neues Thema…" value={newName}
+              onChange={e => setNewName(e.target.value)} style={{ flex: 1 }} />
+            <button className="btn-primary" type="submit" style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>+ Thema</button>
+          </form>
+
+          <div className="section-head">Themen ({topics.length})</div>
+
+          {topics.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--fg2)', fontSize: 13 }}>
+              Noch keine Themen angelegt.
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {topics.map(t => {
               const latest = t.progress?.[0]?.value ?? null;
+              const isOpen = active === t.id;
               return (
-                <li key={t.id} className="bg-white border rounded p-4 space-y-3">
-
-                  {/* Topic-Header */}
-                  <div className="flex items-center justify-between">
-                    {active === t.id
-                      ? <input
-                          type="text"
-                          value={renameName}
-                          onChange={e => setRenameName(e.target.value)}
-                          className="font-medium border-b border-blue-400 focus:outline-none bg-transparent"
-                        />
-                      : <span className="font-medium">{t.name}</span>
-                    }
-                    <div className="flex gap-3 text-sm">
-                      <button onClick={() => toggleForm(t.id, t.name, latest)} className="text-blue-600 hover:underline">
-                        {active === t.id ? 'Abbrechen' : 'Bearbeiten'}
+                <div key={t.id} className={`card ${isOpen ? 'card-active' : ''}`}>
+                  {/* Header row */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <span style={{ fontWeight: 600, fontSize: 14, flex: 1 }}>{t.name}</span>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <button onClick={() => toggleForm(t)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: isOpen ? 'var(--fg2)' : 'var(--accent)', fontSize: 12, fontFamily: 'var(--font)', padding: 0 }}>
+                        {isOpen ? 'Abbrechen' : 'Bearbeiten'}
                       </button>
-                      <button onClick={() => handleDeleteTopic(t.id)} className="text-red-400 hover:text-red-600">
+                      <button onClick={() => handleDeleteTopic(t.id)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--red)', fontSize: 12, fontFamily: 'var(--font)', padding: 0 }}>
                         Löschen
                       </button>
                     </div>
                   </div>
 
-                  {/* Fortschrittsbalken */}
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 bg-gray-100 rounded-full h-2">
-                      <div
-                        className={`${progressColor(latest)} h-2 rounded-full transition-all`}
-                        style={{ width: `${latest ?? 0}%` }}
-                      />
-                    </div>
-                    <span className="text-sm text-gray-500 w-10 text-right">
+                  {/* Progress bar */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <ProgressBar value={latest} />
+                    <span style={{ fontSize: 12, fontWeight: 700, color: progColor(latest), minWidth: 32, textAlign: 'right' }}>
                       {latest !== null ? `${latest}%` : '–'}
                     </span>
                   </div>
 
-                  {/* Notiz der letzten Eintragung */}
-                  {t.progress?.[0]?.note && (
-                    <p className="text-xs text-gray-400 italic">"{t.progress[0].note}"</p>
+                  {/* Note */}
+                  {t.progress?.[0]?.note && !isOpen && (
+                    <p style={{ fontSize: 11, color: 'var(--fg2)', fontStyle: 'italic' }}>
+                      „{t.progress[0].note}"
+                    </p>
                   )}
 
-                  {/* Fortschritts-Formular (aufklappbar) */}
-                  {active === t.id && (
-                    <form onSubmit={e => handleSaveProgress(e, t.id, t.name)} className="flex gap-2 pt-1">
-                      <div className="flex items-center gap-3 flex-1">
-                        <input
-                          type="range" min="0" max="100" step="1"
-                          value={progressForm.value}
-                          onChange={e => setProgressForm({ ...progressForm, value: e.target.value })}
-                          className="flex-1 accent-blue-600 cursor-pointer"
-                        />
-                        <div className="flex items-center gap-0.5">
-                          <input
-                            type="number" min="0" max="100"
-                            value={progressForm.value}
-                            onChange={e => {
-                              const clamped = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
-                              setProgressForm({ ...progressForm, value: clamped });
-                            }}
-                            className="w-12 text-center text-sm font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-full px-2 py-0.5"
-                          />
-                          <span className="text-sm font-semibold text-blue-700">%</span>
+                  {/* Edit form */}
+                  {isOpen && (
+                    <form onSubmit={e => handleSaveProgress(e, t.id, t.name)}
+                      style={{ borderTop: '1px solid var(--border)', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {/* Rename */}
+                      <div>
+                        <label className="form-label">Thema umbenennen</label>
+                        <input className="input" type="text" value={renameName}
+                          onChange={e => setRenameName(e.target.value)}
+                          style={{ fontSize: 13, padding: '8px 12px' }} />
+                      </div>
+                      {/* Slider */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <input type="range" min="0" max="100" step="1" value={progressVal}
+                          onChange={e => setProgressVal(e.target.value)} style={{ flex: 1 }} />
+                        <div style={{ background: 'var(--accent-dim)', border: '1px solid var(--accent)', borderRadius: 8, padding: '4px 10px', minWidth: 52 }}>
+                          <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent)' }}>{progressVal}%</span>
                         </div>
                       </div>
-                      <input
-                        type="text" placeholder="Notiz (optional)"
-                        value={progressForm.note}
-                        onChange={e => setProgressForm({ ...progressForm, note: e.target.value })}
-                        className="flex-1 border rounded px-2 py-1 text-sm"
-                      />
-                      <button type="submit" className="bg-blue-600 text-white rounded px-3 py-1 text-sm hover:bg-blue-700">
-                        Speichern
-                      </button>
+                      {/* Notiz + Speichern */}
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <input className="input" type="text" placeholder="Notiz (optional)" value={note}
+                          onChange={e => setNote(e.target.value)} style={{ flex: 1, fontSize: 13, padding: '8px 12px' }} />
+                        <button className="btn-primary" type="submit" style={{ padding: '8px 14px', fontSize: 13 }}>Speichern</button>
+                      </div>
                     </form>
                   )}
-
-                </li>
+                </div>
               );
             })}
-          </ul>
-        )}
+          </div>
+          <div style={{ height: 24 }} />
+        </div>
 
-      </main>
+        <BottomTabBar />
+      </div>
     </div>
   );
 }
