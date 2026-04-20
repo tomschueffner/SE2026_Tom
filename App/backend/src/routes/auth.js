@@ -9,9 +9,14 @@ const router = express.Router();
 const prisma = new PrismaClient();
 
 const registerSchema = z.object({
-  name: z.string().min(1).max(100),
+  name: z.string().min(1).max(15),
   email: z.string().email(),
-  password: z.string().min(8).max(100),
+  password: z.string()
+    .min(8).max(15, 'Maximale Länge überschritten')
+    .regex(/[a-z]/, 'Muss mindestens einen Kleinbuchstaben enthalten')
+    .regex(/[A-Z]/, 'Muss mindestens einen Großbuchstaben enthalten')
+    .regex(/[0-9]/, 'Muss mindestens eine Zahl enthalten')
+    .regex(/[^a-zA-Z0-9]/, 'Muss mindestens ein Sonderzeichen enthalten'),
 });
 
 const loginSchema = z.object({

@@ -63,14 +63,9 @@ export default function DashboardPage() {
           </div>
           <div
             style={{
-              width: 28,
-              height: 28,
-              borderRadius: '50%',
-              background: 'var(--bg3)',
-              border: '1px solid var(--border)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              width: 28, height: 28, borderRadius: '50%',
+              background: 'var(--bg3)', border: '1px solid var(--border)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer',
             }}
             onClick={() => navigate('/profil')}
@@ -84,26 +79,12 @@ export default function DashboardPage() {
 
         <div className="screen-scroll">
           {/* Stats */}
-          <div
-            className="card"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr 1fr',
-              marginBottom: 16,
-              padding: '12px 8px',
-            }}
-          >
+          <div className="card" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', marginBottom: 16, padding: '12px 8px' }}>
             <div className="stat-box">
               <div className="stat-num">{totalSubjects}</div>
               <div className="stat-label">Fächer</div>
             </div>
-            <div
-              className="stat-box"
-              style={{
-                borderLeft: '1px solid var(--border)',
-                borderRight: '1px solid var(--border)',
-              }}
-            >
+            <div className="stat-box" style={{ borderLeft: '1px solid var(--border)', borderRight: '1px solid var(--border)' }}>
               <div className="stat-num">{totalTopics}</div>
               <div className="stat-label">Themen</div>
             </div>
@@ -126,37 +107,18 @@ export default function DashboardPage() {
                     const avg = avgProgress(s.topics);
                     return (
                       <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                        <span
-                          style={{
-                            fontSize: 11,
-                            color: 'var(--fg2)',
-                            minWidth: 80,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
+                        <span style={{ fontSize: 11, color: 'var(--fg2)', minWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {s.name}
                         </span>
                         <ProgressBar value={avg} height={5} />
-                        <span
-                          style={{
-                            fontSize: 11,
-                            color: progColor(avg),
-                            minWidth: 28,
-                            textAlign: 'right',
-                            fontWeight: 600,
-                          }}
-                        >
+                        <span style={{ fontSize: 11, color: progColor(avg), minWidth: 28, textAlign: 'right', fontWeight: 600 }}>
                           {avg !== null ? `${avg}%` : '–'}
                         </span>
                       </div>
                     );
                   })}
                   {sortedSubjects.filter(s => s.topics.length > 0).length === 0 && (
-                    <p style={{ fontSize: 12, color: 'var(--fg2)' }}>
-                      Noch keine Themen mit Fortschritt.
-                    </p>
+                    <p style={{ fontSize: 12, color: 'var(--fg2)' }}>Noch keine Themen mit Fortschritt.</p>
                   )}
                 </div>
               </div>
@@ -164,85 +126,31 @@ export default function DashboardPage() {
           )}
 
           {/* Add subject */}
-          <form
-            onSubmit={handleAdd}
-            style={{ display: 'flex', gap: 8, marginBottom: 16 }}
-          >
-            <input
-              className="input"
-              placeholder="Neues Fach…"
-              value={newName}
-              onChange={e => setNewName(e.target.value)}
-              style={{ flex: 1 }}
-            />
-            <button
-              className="btn-primary"
-              type="submit"
-              style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}
-            >
-              + Fach
-            </button>
+          <form onSubmit={handleAdd} style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+            <input className="input" placeholder="Neues Fach…" value={newName} onChange={e => setNewName(e.target.value)} style={{ flex: 1 }} />
+            <button className="btn-primary" type="submit" style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>+ Fach</button>
           </form>
-          {error && (
-            <p style={{ fontSize: 13, color: 'var(--red)', marginBottom: 12 }}>
-              {error}
-            </p>
-          )}
+          {error && <p style={{ fontSize: 13, color: 'var(--red)', marginBottom: 12 }}>{error}</p>}
 
           {/* Subject list */}
           <div className="section-head">Fächer ({sortedSubjects.length})</div>
           {sortedSubjects.length === 0 ? (
-            <p style={{ fontSize: 13, color: 'var(--fg2)' }}>
-              Noch keine Fächer angelegt.
-            </p>
+            <p style={{ fontSize: 13, color: 'var(--fg2)' }}>Noch keine Fächer angelegt.</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {sortedSubjects.map(s => {
                 const avg = avgProgress(s.topics);
                 return (
-                  <div
-                    key={s.id}
-                    className="card card-hover"
-                    onClick={() =>
-                      navigate(`/subjects/${s.id}`, { state: { name: s.name } })
-                    }
-                  >
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        marginBottom: 10,
-                      }}
-                    >
+                  <div key={s.id} className="card card-hover" onClick={() => navigate(`/subjects/${s.id}`, { state: { name: s.name } })}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                       <span style={{ fontWeight: 600, fontSize: 14 }}>{s.name}</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontSize: 11, color: 'var(--fg2)' }}>
-                          {s.topics.length} Themen
-                        </span>
-                        <span
-                          style={{
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: progColor(avg),
-                            minWidth: 36,
-                            textAlign: 'right',
-                          }}
-                        >
+                        <span style={{ fontSize: 11, color: 'var(--fg2)' }}>{s.topics.length} Themen</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: progColor(avg), minWidth: 36, textAlign: 'right' }}>
                           {avg !== null ? `${avg}%` : '–'}
                         </span>
-                        <button
-                          onClick={e => handleDelete(e, s.id)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            color: 'var(--red)',
-                            fontSize: 12,
-                            fontFamily: 'var(--font)',
-                            padding: 0,
-                          }}
-                        >
+                        <button onClick={e => handleDelete(e, s.id)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--red)', fontSize: 12, fontFamily: 'var(--font)', padding: 0 }}>
                           Löschen
                         </button>
                       </div>
@@ -253,7 +161,6 @@ export default function DashboardPage() {
               })}
             </div>
           )}
-
           <div style={{ height: 24 }} />
         </div>
 
