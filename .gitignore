@@ -1,0 +1,8 @@
+*.pptx
+presentation-audit.md
+testStrategy.md
+node_modules/
+scripts/node_modules/
+.claude/
+skills-lock.json
+App/backend/prisma/prisma/dev.db

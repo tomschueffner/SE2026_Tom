@@ -153,9 +153,17 @@ export default function SubjectPage() {
                       {/* Slider */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <input type="range" min="0" max="100" step="1" value={progressVal}
-                          onChange={e => setProgressVal(e.target.value)} style={{ flex: 1 }} />
-                        <div style={{ background: 'var(--accent-dim)', border: '1px solid var(--accent)', borderRadius: 8, padding: '4px 10px', minWidth: 52 }}>
-                          <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent)' }}>{progressVal}%</span>
+                          onChange={e => setProgressVal(Number(e.target.value))} style={{ flex: 1 }} />
+                        <div style={{ background: 'var(--accent-dim)', border: '1px solid var(--accent)', borderRadius: 8, padding: '4px 6px', minWidth: 64, display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <input
+                            type="number" min="0" max="100" value={progressVal}
+                            onChange={e => {
+                              const v = Math.min(100, Math.max(0, Number(e.target.value)));
+                              setProgressVal(isNaN(v) ? 0 : v);
+                            }}
+                            style={{ width: 36, background: 'none', border: 'none', outline: 'none', fontSize: 14, fontWeight: 700, color: 'var(--accent)', fontFamily: 'var(--font)', textAlign: 'right', padding: 0 }}
+                          />
+                          <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent)' }}>%</span>
                         </div>
                       </div>
                       {/* Notiz + Speichern */}

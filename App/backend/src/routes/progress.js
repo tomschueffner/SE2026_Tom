@@ -1,15 +1,9 @@
 const express = require('express');
-const { z } = require('zod');
 const { PrismaClient } = require('@prisma/client');
+const { progressSchema } = require('../validation/schemas');
 
 const router = express.Router();
 const prisma = new PrismaClient();
-
-const progressSchema = z.object({
-  topicId: z.number().int().positive(),
-  value: z.number().int().min(0).max(100),
-  note: z.string().max(500).optional(),
-});
 
 // Helper: verify topic belongs to current user via subject chain
 async function ownedTopic(topicId, userId) {

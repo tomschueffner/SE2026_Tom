@@ -1,28 +1,12 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { z } = require('zod');
 const { PrismaClient } = require('@prisma/client');
 const { verifyToken } = require('../middleware/auth');
+const { registerSchema, loginSchema } = require('../validation/schemas');
 
 const router = express.Router();
 const prisma = new PrismaClient();
-
-const registerSchema = z.object({
-  name: z.string().min(1).max(15),
-  email: z.string().email(),
-  password: z.string()
-    .min(8).max(15, 'Maximale Länge überschritten')
-    .regex(/[a-z]/, 'Muss mindestens einen Kleinbuchstaben enthalten')
-    .regex(/[A-Z]/, 'Muss mindestens einen Großbuchstaben enthalten')
-    .regex(/[0-9]/, 'Muss mindestens eine Zahl enthalten')
-    .regex(/[^a-zA-Z0-9]/, 'Muss mindestens ein Sonderzeichen enthalten'),
-});
-
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
-});
 
 // Sets JWT as HttpOnly cookie — JS on the page can never read this
 function setTokenCookie(res, userId, email) {

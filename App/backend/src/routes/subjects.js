@@ -1,11 +1,9 @@
 const express = require('express');
-const { z } = require('zod');
 const { PrismaClient } = require('@prisma/client');
+const { subjectSchema } = require('../validation/schemas');
 
 const router = express.Router();
 const prisma = new PrismaClient();
-
-const subjectSchema = z.object({ name: z.string().min(1).max(100) });
 
 // GET /api/subjects
 router.get('/', async (req, res) => {

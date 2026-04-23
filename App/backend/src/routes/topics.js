@@ -1,14 +1,9 @@
 const express = require('express');
-const { z } = require('zod');
 const { PrismaClient } = require('@prisma/client');
+const { topicSchema } = require('../validation/schemas');
 
 const router = express.Router();
 const prisma = new PrismaClient();
-
-const topicSchema = z.object({
-  name: z.string().min(1).max(100),
-  subjectId: z.number().int().positive(),
-});
 
 // Helper: verify that a subject belongs to the current user
 async function ownedSubject(subjectId, userId) {
@@ -43,7 +38,7 @@ router.post('/', async (req, res) => {
 // PATCH /api/topics/:id  – rename
 router.patch('/:id', async (req, res) => {
   const id = parseInt(req.params.id);
-  const result = z.object({ name: z.string().min(1).max(100) }).safeParse(req.body);
+  const result = topicSchema.pick({ name: true }).safeParse(req.body);
   if (!result.success) return res.status(400).json({ error: result.error.flatten().fieldErrors });
 
   const topic = await prisma.topic.findFirst({ where: { id }, include: { subject: true } });
